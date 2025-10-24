@@ -4,8 +4,18 @@ namespace EasyPeasyFirstPersonController
     using System.Collections;
     using UnityEngine;
 
+    // Note: PlayerStats is assumed to be in the Global Namespace (no using statement needed here).
+
     public partial class FirstPersonController : MonoBehaviour
     {
+        // --------------------------------------------------
+        // I. EXTERNAL REFERENCES
+        // --------------------------------------------------
+        private PlayerStats playerStats;
+
+        // --------------------------------------------------
+        // II. INSPECTOR FIELDS (EXISTING)
+        // --------------------------------------------------
         [Range(0, 100)] public float mouseSensitivity = 50f;
         [Range(0f, 200f)] private float snappiness = 100f;
         [Range(0f, 20f)] public float walkSpeed = 3f;
@@ -39,6 +49,13 @@ namespace EasyPeasyFirstPersonController
         public LayerMask groundMask;
         public Transform playerCamera;
         public Transform cameraParent;
+<<<<<<< Updated upstream
+=======
+
+        // --------------------------------------------------
+        // III. INTERNAL STATE FIELDS (EXISTING)
+        // --------------------------------------------------
+>>>>>>> Stashed changes
         private float rotX, rotY;
         private float xVelocity, yVelocity;
         private CharacterController characterController;
@@ -68,11 +85,23 @@ namespace EasyPeasyFirstPersonController
         private float slideSpeedVelocity;
         private float currentTiltAngle;
         private float tiltVelocity;
+<<<<<<< Updated upstream
+=======
+        private Animator anim;
+        private bool jumpPressed = false;
+>>>>>>> Stashed changes
 
         public float CurrentCameraHeight => isCrouching || isSliding ? crouchCameraHeight : originalCameraParentHeight;
 
         private void Awake()
         {
+            // ⭐ NEW: Get PlayerStats Component
+            playerStats = GetComponent<PlayerStats>();
+            if (playerStats == null)
+            {
+                Debug.LogWarning("FirstPersonController: PlayerStats component not found. Sprinting will not drain stamina.");
+            }
+
             characterController = GetComponent<CharacterController>();
             cam = playerCamera.GetComponent<Camera>();
             originalHeight = characterController.height;
@@ -133,6 +162,7 @@ namespace EasyPeasyFirstPersonController
             float capsuleRadius = characterController.radius * 0.95f;
             float castDistance = isSliding ? originalHeight + 0.2f : originalHeight - crouchHeight + 0.2f;
             bool hasCeiling = Physics.CapsuleCast(point1, point2, capsuleRadius, Vector3.up, castDistance, groundMask, ceilingCheckQueryTriggerInteraction);
+
             if (isSliding)
             {
                 postSlideCrouchTimer = 0.3f;
@@ -147,6 +177,7 @@ namespace EasyPeasyFirstPersonController
                 isCrouching = canCrouch && (wantsToCrouch || (hasCeiling && !isSliding));
             }
 
+            // Slide logic remains the same
             if (canSlide && isSprinting && Input.GetKeyDown(KeyCode.LeftControl) && isGrounded)
             {
                 isSliding = true;
@@ -177,6 +208,32 @@ namespace EasyPeasyFirstPersonController
             cam.fieldOfView = currentFov;
 
             HandleMovement();
+<<<<<<< Updated upstream
+=======
+
+            // ⭐ NEW: Stamina Logic (Drain and Regen)
+            HandleStamina(Time.deltaTime);
+
+            // 🟢 Animations
+            HandleAnimations();
+>>>>>>> Stashed changes
+        }
+
+        // ⭐ NEW: Handle Stamina Drain and Regen
+        private void HandleStamina(float deltaTime)
+        {
+            if (playerStats == null) return;
+
+            // ถ้ากำลังวิ่งอยู่ (isSprinting ถูกตั้งค่าใน HandleMovement) ให้ใช้ Stamina
+            if (isSprinting)
+            {
+                playerStats.UseStamina(playerStats.staminaDrainRate * deltaTime);
+            }
+            // ถ้าไม่ได้วิ่งและ Stamina ไม่เต็ม ให้ฟื้นฟู
+            else if (!isSprinting && playerStats.CurrentStamina < playerStats.maxStamina)
+            {
+                playerStats.RecoverStamina(playerStats.regenRate * deltaTime);
+            }
         }
 
         private void HandleHeadBob()
@@ -232,7 +289,21 @@ namespace EasyPeasyFirstPersonController
         {
             moveInput.x = Input.GetAxis("Horizontal");
             moveInput.y = Input.GetAxis("Vertical");
-            isSprinting = canSprint && Input.GetKey(KeyCode.LeftShift) && moveInput.y > 0.1f && isGrounded && !isCrouching && !isSliding;
+
+            // 1. ตรวจสอบว่าผู้เล่นต้องการวิ่งหรือไม่
+            bool wantsToSprint = canSprint
+                                 && Input.GetKey(KeyCode.LeftShift)
+                                 && moveInput.y > 0.1f
+                                 && isGrounded
+                                 && !isCrouching
+                                 && !isSliding;
+
+            // 2. ⭐ Stamina Check: วิ่งได้จริงเมื่อไม่เหนื่อยและมี Stamina
+            bool canActuallySprint = playerStats != null
+                                     ? (!playerStats.IsExhausted && playerStats.CurrentStamina > 0)
+                                     : true;
+
+            isSprinting = wantsToSprint && canActuallySprint;
 
             float currentSpeed = isCrouching ? crouchSpeed : (isSprinting ? sprintSpeed : walkSpeed);
             if (!isMove) currentSpeed = 0f;
