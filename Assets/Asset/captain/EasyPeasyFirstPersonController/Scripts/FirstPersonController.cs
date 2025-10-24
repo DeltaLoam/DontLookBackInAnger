@@ -1,5 +1,7 @@
 namespace EasyPeasyFirstPersonController
 {
+    using System;
+    using System.Collections;
     using UnityEngine;
 
     public partial class FirstPersonController : MonoBehaviour
@@ -37,7 +39,6 @@ namespace EasyPeasyFirstPersonController
         public LayerMask groundMask;
         public Transform playerCamera;
         public Transform cameraParent;
-
         private float rotX, rotY;
         private float xVelocity, yVelocity;
         private CharacterController characterController;
@@ -68,20 +69,12 @@ namespace EasyPeasyFirstPersonController
         private float currentTiltAngle;
         private float tiltVelocity;
 
-        // Animator reference
-        private Animator anim;
-
-        // Jump pressed for instant animation
-        private bool jumpPressed = false;
-
         public float CurrentCameraHeight => isCrouching || isSliding ? crouchCameraHeight : originalCameraParentHeight;
 
         private void Awake()
         {
             characterController = GetComponent<CharacterController>();
             cam = playerCamera.GetComponent<Camera>();
-            anim = GetComponentInChildren<Animator>();
-
             originalHeight = characterController.height;
             originalCameraParentHeight = cameraParent.localPosition.y;
             defaultPosY = cameraParent.localPosition.y;
@@ -103,12 +96,6 @@ namespace EasyPeasyFirstPersonController
 
         private void Update()
         {
-            // 🟢 Detect jump input early for instant animation
-            if (canJump && Input.GetKeyDown(KeyCode.Space) && !isSliding)
-            {
-                jumpPressed = true;
-            }
-
             isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask, groundCheckQueryTriggerInteraction);
             if (isGrounded && moveDirection.y < 0)
             {
@@ -190,9 +177,6 @@ namespace EasyPeasyFirstPersonController
             cam.fieldOfView = currentFov;
 
             HandleMovement();
-
-            // 🟢 Animations
-            HandleAnimations();
         }
 
         private void HandleHeadBob()
@@ -277,26 +261,6 @@ namespace EasyPeasyFirstPersonController
             {
                 moveDirection = new Vector3(moveVector.x, moveDirection.y, moveVector.z);
                 characterController.Move(moveDirection * Time.deltaTime);
-            }
-        }
-
-        private void HandleAnimations()
-        {
-            if (anim == null) return;
-
-            Vector3 flatVel = new Vector3(characterController.velocity.x, 0, characterController.velocity.z);
-            float speed = flatVel.magnitude;
-            bool isMoving = speed > 0.1f;
-
-            anim.SetFloat("Speed", speed);
-            anim.SetBool("IsMoving", isMoving);
-            anim.SetBool("IsCrouching", isCrouching);
-
-            // 🟢 Jump animation (instant)
-            anim.SetBool("IsJumping", jumpPressed || !isGrounded);
-            if (jumpPressed && !isGrounded)
-            {
-                jumpPressed = false;
             }
         }
 
