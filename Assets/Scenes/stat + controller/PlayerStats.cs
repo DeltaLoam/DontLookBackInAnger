@@ -48,7 +48,17 @@ public class PlayerStats : MonoBehaviour
     public event Action OnNotExhausted;
 
     // --------------------------------------------------
+    public void ApplySanityDrain(float amount)
+    {
+        // สมมติว่าคุณมีตัวแปร public Action<float, float> OnSanityUpdate อยู่แล้ว
+        // สมมติว่าคุณมีตัวแปร CurrentSanity และ maxSanity
 
+        // ตรวจสอบว่าไม่ลด Sanity ต่ำกว่า 0
+        CurrentSanity = Mathf.Max(0, CurrentSanity - amount);
+
+        // เรียก Event เพื่อแจ้งเตือนทุกคนที่สมัครรับ (SanityVisual, SanityDisplay)
+        OnSanityUpdate?.Invoke(CurrentSanity, maxSanity);
+    }
     void Awake()
     {
         Initialize(maxSanity, maxStamina);
