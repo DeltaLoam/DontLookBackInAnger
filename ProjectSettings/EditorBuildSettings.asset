@@ -17,6 +17,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Menu/WaitingRoom.unity
     guid: a726164f1074e477ab049b8ddacf9359
+  - enabled: 1
+    path: Assets/Scenes/Ghost_test.unity
+    guid: 9557ece5bf77e0346bc9d8d724faadc7
+  - enabled: 1
+    path: Assets/Scenes/Eark.unity
+    guid: 32a712ac9a284c34096abceed3602531
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

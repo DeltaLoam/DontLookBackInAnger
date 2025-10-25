@@ -30,17 +30,22 @@ public class GhostOrb : MonoBehaviour
     }
 
     private void Collect()
-    {
-        if (isCollected) return;
-        isCollected = true;
+{
+    if (isCollected) return;
+    isCollected = true;
 
-        // 🔊 เล่นเสียงตอนเก็บ orb
-        if (collectSound)
-            AudioSource.PlayClipAtPoint(collectSound, transform.position);
+    // 🔊 เล่นเสียงตอนเก็บ orb
+    if (collectSound)
+        AudioSource.PlayClipAtPoint(collectSound, transform.position);
 
-        
+    // 🧮 แจ้ง GhostOrbManager ให้เพิ่มจำนวน orb ที่เก็บได้
+    if (GhostOrbManager.Instance != null)
+        GhostOrbManager.Instance.AddOrb();
 
-        // 🔹 ทำลายหรือซ่อน orb
-        Destroy(gameObject);
-    }
+    // 🔹 ทำลายหรือซ่อน orb
+    Destroy(gameObject);
+}
+
+    
+    
 }

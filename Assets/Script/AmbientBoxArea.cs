@@ -1,0 +1,60 @@
+using UnityEngine;
+
+[RequireComponent(typeof(AudioSource))]
+public class AmbientBoxArea : MonoBehaviour
+{
+    [Header("Area Settings")]
+    [SerializeField] private BoxCollider area;      // defines rectangular area
+    [SerializeField] private float fadeSpeed = 1.5f;
+
+    [Header("Audio Settings")]
+    [SerializeField] private bool playOnStart = true; // optional for default zone ambience
+
+    private AudioSource audioSource;
+    private Transform player;
+    private float targetVolume;
+
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+        audioSource.loop = true;
+        audioSource.playOnAwake = false;
+        audioSource.volume = 0f;
+    }
+
+    private void Start()
+    {
+        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+
+        if (playOnStart)
+        {
+            audioSource.volume = 1f;
+            audioSource.Play();
+        }
+    }
+
+    private void Update()
+    {
+        if (player == null || area == null) return;
+
+        bool inside = area.bounds.Contains(player.position);
+        targetVolume = inside ? 1f : 0f;
+
+        // Smoothly fade in/out
+        audioSource.volume = Mathf.MoveTowards(audioSource.volume, targetVolume, fadeSpeed * Time.deltaTime);
+
+        if (audioSource.volume > 0f && !audioSource.isPlaying)
+            audioSource.Play();
+        else if (audioSource.volume <= 0f && audioSource.isPlaying)
+            audioSource.Stop();
+    }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        if (area == null) return;
+        Gizmos.color = new Color(0.2f, 0.6f, 1f, 0.25f);
+        Gizmos.DrawCube(area.bounds.center, area.bounds.size);
+    }
+#endif
+}
