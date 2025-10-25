@@ -1,20 +1,16 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class JumpscareTrigger : MonoBehaviour
 {
     [Header("Trigger Settings")]
-    [Tooltip("ระยะที่ผู้เล่นจะทำให้ jumpscare ทำงานได้")]
-    public float triggerRadius = 5f;
     [Tooltip("จะให้เกิด jumpscare ได้อีกไหมหลังเกิดครั้งแรก")]
     public bool oneTimeOnly = true;
 
     [Header("Scare Image")]
-    [Tooltip("UI Image ที่จะใช้แสดงภาพ jumpscare")]
     public Image scareImage;
-    [Tooltip("ภาพที่จะใช้ตอน jumpscare")]
     public Sprite scareSprite;
-    [Tooltip("ระยะเวลาที่ภาพจะโชว์")]
     public float scareDuration = 2.5f;
 
     [Header("Scare Sound")]
@@ -26,7 +22,6 @@ public class JumpscareTrigger : MonoBehaviour
 
     private bool hasTriggered = false;
     private AudioSource audioSource;
-    private Transform player;
 
     void Start()
     {
@@ -34,50 +29,45 @@ public class JumpscareTrigger : MonoBehaviour
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.spatialBlend = 0f; // เสียงเป็น 2D (เล่นจากจอ)
+            audioSource.spatialBlend = 0f; // เสียง 2D
         }
 
         if (scareImage != null)
             scareImage.enabled = false;
-
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
     }
 
-    void Update()
+    // ✅ ไม่เช็ค tag แล้ว
+    private void OnTriggerEnter(Collider other)
     {
         if (hasTriggered && oneTimeOnly) return;
-        if (player == null) return;
+        if (other.isTrigger) return; // กันไม่ให้ trigger ซ้อนกันเอง
 
-        float distance = Vector3.Distance(transform.position, player.position);
-        if (distance <= triggerRadius)
-        {
-            TriggerScare();
-        }
+        // ตัวอย่าง: ถ้าอยากให้เฉพาะวัตถุที่มี Rigidbody เท่านั้นถึงจะโดน
+        // if (!other.attachedRigidbody) return;
+
+        Debug.Log($"👻 Jumpscare Triggered by: {other.name}");
+        TriggerScare();
     }
 
     void TriggerScare()
     {
         hasTriggered = true;
 
-        // 🔹 แสดงภาพ jumpscare
         if (scareImage != null && scareSprite != null)
         {
             scareImage.sprite = scareSprite;
             scareImage.enabled = true;
         }
 
-        // 🔊 เล่นเสียง
         if (scareSound != null)
             audioSource.PlayOneShot(scareSound);
 
-        // ✨ เอฟเฟกต์เสริม
         if (fxEffect != null)
             fxEffect.Play();
 
         if (flickerLight != null)
             StartCoroutine(FlickerLight());
 
-        // 🔻 ปิดภาพหลังครบเวลา
         Invoke(nameof(EndScare), scareDuration);
     }
 
@@ -87,7 +77,7 @@ public class JumpscareTrigger : MonoBehaviour
             scareImage.enabled = false;
     }
 
-    System.Collections.IEnumerator FlickerLight()
+    IEnumerator FlickerLight()
     {
         float endTime = Time.time + scareDuration;
         while (Time.time < endTime)
@@ -101,6 +91,10 @@ public class JumpscareTrigger : MonoBehaviour
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, triggerRadius);
+        var col = GetComponent<SphereCollider>();
+        if (col != null)
+            Gizmos.DrawWireSphere(transform.position, col.radius);
+        else
+            Gizmos.DrawWireSphere(transform.position, 5f);
     }
 }

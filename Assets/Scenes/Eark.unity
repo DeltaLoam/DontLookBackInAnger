@@ -839,8 +839,8 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 9156347144040445546, guid: c82236c16aae9d34fbd437f8dea6e2c9, type: 3}
   m_PrefabInstance: {fileID: 2108993731}
   m_PrefabAsset: {fileID: 0}
---- !u!65 &1374365458
-BoxCollider:
+--- !u!136 &1374365463
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -854,11 +854,13 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 1
+  m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1392947868
 GameObject:
@@ -945,6 +947,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1421893004}
   - component: {fileID: 1421893003}
+  - component: {fileID: 1421893005}
   m_Layer: 0
   m_Name: JumpscareTrigger
   m_TagString: Untagged
@@ -964,7 +967,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc3e0155939487b44a9052dc42efa53a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  triggerRadius: 3
   oneTimeOnly: 1
   scareImage: {fileID: 1392947870}
   scareSprite: {fileID: 21300000, guid: db02d74b2b2957f419d6a01049cdb142, type: 3}
@@ -981,12 +983,33 @@ Transform:
   m_GameObject: {fileID: 1421893002}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12.52, y: 1.4925643, z: -5.64}
+  m_LocalPosition: {x: 9.71, y: 1.4925643, z: -5.64}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &1421893005
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421893002}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 3
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1796372601
 GameObject:
   m_ObjectHideFlags: 0
@@ -1107,7 +1130,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: 10fef1121ac99024aaeedf98525c6fda, type: 2}
     - target: {fileID: 7680417158960663252, guid: 219a03056a1fcfd478e4081baa809f1c, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 13.5040655
+      value: 10.31
       objectReference: {fileID: 0}
     - target: {fileID: 7680417158960663252, guid: 219a03056a1fcfd478e4081baa809f1c, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1145,7 +1168,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 7628061428021319781, guid: 219a03056a1fcfd478e4081baa809f1c, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -1264,7 +1288,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9156347144040445546, guid: c82236c16aae9d34fbd437f8dea6e2c9, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 16.754
+      value: 17.67
       objectReference: {fileID: 0}
     - target: {fileID: 9156347144040445546, guid: c82236c16aae9d34fbd437f8dea6e2c9, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1308,7 +1332,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9156347144040445547, guid: c82236c16aae9d34fbd437f8dea6e2c9, type: 3}
       propertyPath: m_TagString
-      value: Player
+      value: Untagged
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -1320,7 +1344,7 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 9156347144040445547, guid: c82236c16aae9d34fbd437f8dea6e2c9, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1374365458}
+      addedObject: {fileID: 1374365463}
     - targetCorrespondingSourceObject: {fileID: 9156347143994207886, guid: c82236c16aae9d34fbd437f8dea6e2c9, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2052978217}
