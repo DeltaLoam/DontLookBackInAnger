@@ -8,6 +8,12 @@ public class JumpscareTrigger : MonoBehaviour
     [Tooltip("จะให้เกิด jumpscare ได้อีกไหมหลังเกิดครั้งแรก")]
     public bool oneTimeOnly = true;
 
+    [Tooltip("ระยะที่ตรวจว่ามีคนอยู่ใกล้เพื่อ jumpscare")]
+    public float triggerRadius = 5f;
+
+    [Tooltip("เวลาหน่วงก่อน jumpscare จะทำงานจริง")]
+    public float scareDelay = 2.0f; // 🔹 ปรับได้จาก Inspector
+
     [Header("Scare Image")]
     public Image scareImage;
     public Sprite scareSprite;
@@ -20,8 +26,13 @@ public class JumpscareTrigger : MonoBehaviour
     public ParticleSystem fxEffect;
     public Light flickerLight;
 
+    [Header("Sanity Effect")]
+    [Tooltip("จำนวน Sanity ที่จะลดเมื่อโดน jumpscare")]
+    public float sanityDrainAmount = 25f;
+
     private bool hasTriggered = false;
     private AudioSource audioSource;
+    private Coroutine scareCoroutine; // สำหรับจัดการ Delay
 
     void Start()
     {
@@ -36,38 +47,81 @@ public class JumpscareTrigger : MonoBehaviour
             scareImage.enabled = false;
     }
 
-    // ✅ ไม่เช็ค tag แล้ว
-    private void OnTriggerEnter(Collider other)
+    void Update()
     {
         if (hasTriggered && oneTimeOnly) return;
-        if (other.isTrigger) return; // กันไม่ให้ trigger ซ้อนกันเอง
 
-        // ตัวอย่าง: ถ้าอยากให้เฉพาะวัตถุที่มี Rigidbody เท่านั้นถึงจะโดน
-        // if (!other.attachedRigidbody) return;
+        Collider[] hits = Physics.OverlapSphere(transform.position, triggerRadius);
+        foreach (Collider hit in hits)
+        {
+            PlayerStats stats = hit.GetComponent<PlayerStats>();
+            if (stats != null)
+            {
+                // 🔹 เริ่ม coroutine รอ delay ก่อน jumpscare
+                if (scareCoroutine == null)
+                    scareCoroutine = StartCoroutine(DelayedScare(stats));
+                return;
+            }
+        }
 
-        Debug.Log($"👻 Jumpscare Triggered by: {other.name}");
-        TriggerScare();
+        // 🔹 ถ้าไม่มีใครอยู่ในระยะ ให้ยกเลิกการนับถอยหลัง
+        if (scareCoroutine != null)
+        {
+            StopCoroutine(scareCoroutine);
+            scareCoroutine = null;
+        }
     }
 
-    void TriggerScare()
+    IEnumerator DelayedScare(PlayerStats targetStats)
+    {
+        float timer = 0f;
+
+        // 🔸 รอจนถึงเวลาที่กำหนด scareDelay
+        while (timer < scareDelay)
+        {
+            timer += Time.deltaTime;
+
+            // ถ้าออกจากระยะก่อนครบเวลา → ยกเลิก
+            if (Vector3.Distance(transform.position, targetStats.transform.position) > triggerRadius)
+                yield break;
+
+            yield return null;
+        }
+
+        // ครบเวลา → jumpscare ทำงาน
+        TriggerScare(targetStats);
+    }
+
+    void TriggerScare(PlayerStats targetStats)
     {
         hasTriggered = true;
 
+        // 🔹 ลด Sanity
+        if (targetStats != null)
+        {
+            targetStats.ApplySanityDrain(sanityDrainAmount);
+            Debug.Log($"😱 Jumpscare! {targetStats.name} lost {sanityDrainAmount} sanity.");
+        }
+
+        // 🔹 แสดงภาพ jumpscare
         if (scareImage != null && scareSprite != null)
         {
             scareImage.sprite = scareSprite;
             scareImage.enabled = true;
         }
 
+        // 🔊 เล่นเสียง
         if (scareSound != null)
             audioSource.PlayOneShot(scareSound);
 
+        // ✨ เอฟเฟกต์เสริม
         if (fxEffect != null)
             fxEffect.Play();
 
         if (flickerLight != null)
             StartCoroutine(FlickerLight());
 
+        // 🔻 ปิดภาพหลังครบเวลา
         Invoke(nameof(EndScare), scareDuration);
     }
 
@@ -91,10 +145,6 @@ public class JumpscareTrigger : MonoBehaviour
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        var col = GetComponent<SphereCollider>();
-        if (col != null)
-            Gizmos.DrawWireSphere(transform.position, col.radius);
-        else
-            Gizmos.DrawWireSphere(transform.position, 5f);
+        Gizmos.DrawWireSphere(transform.position, triggerRadius);
     }
 }
