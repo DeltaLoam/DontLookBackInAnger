@@ -10,8 +10,8 @@ public class PlayerStats : MonoBehaviour
     public float maxSanity = 100f;
     [SerializeField] private float currentSanity;
 
-    public event Action<float, float> OnSanityUpdate; // (current, max)
-    public event Action OnSanityZero;
+    public event Action<float, float> OnSanityUpdate; 
+    public event Action OnSanityZero; 
 
     public float CurrentSanity
     {
@@ -24,7 +24,11 @@ public class PlayerStats : MonoBehaviour
             if (oldValue != currentSanity)
             {
                 OnSanityUpdate?.Invoke(currentSanity, maxSanity);
-                if (currentSanity <= 0) OnSanityZero?.Invoke();
+                if (currentSanity <= 0 && oldValue > 0)
+                {
+                    OnSanityZero?.Invoke();
+                    HandleDeath(); 
+                }
             }
         }
     }
@@ -48,19 +52,52 @@ public class PlayerStats : MonoBehaviour
     public event Action OnNotExhausted;
 
     // --------------------------------------------------
-    public void ApplySanityDrain(float amount)
-    {
-        // สมมติว่าคุณมีตัวแปร public Action<float, float> OnSanityUpdate อยู่แล้ว
-        // สมมติว่าคุณมีตัวแปร CurrentSanity และ maxSanity
+    // III. LIFE STATS
+    // --------------------------------------------------
+    [Header("Life Stats")]
+    public int maxLives = 3; 
+    [SerializeField] private int currentLife; 
 
-        // ตรวจสอบว่าไม่ลด Sanity ต่ำกว่า 0
-        CurrentSanity = Mathf.Max(0, CurrentSanity - amount);
+    public int CurrentLife => currentLife;
 
-        // เรียก Event เพื่อแจ้งเตือนทุกคนที่สมัครรับ (SanityVisual, SanityDisplay)
-        OnSanityUpdate?.Invoke(CurrentSanity, maxSanity);
-    }
+    public event Action<int> OnLifeUpdate; 
+    public event Action OnGameOver; 
+
+    // --------------------------------------------------
+    // IV. RESPAWN LOGIC & AUDIO
+    // --------------------------------------------------
+    [Header("Respawn & Audio")]
+    [Tooltip("ตำแหน่งเกิดใหม่ที่ถูกบันทึกไว้ล่าสุด")]
+    private Vector3 respawnPosition; 
+
+    [Tooltip("AudioSource สำหรับเล่นเสียง")]
+    private AudioSource audioSource; 
+
+    // [Tooltip("เสียงที่จะเล่นเมื่อผู้เล่นเกิดใหม่")]
+    // public AudioClip respawnSFX; 
+    
+    // --------------------------------------------------
+    
     void Awake()
     {
+        // 1. เตรียม AudioSource
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        
+        // 2. ตั้งค่าจุดเกิดเริ่มต้น
+        if (RespawnManager.Instance != null)
+        {
+            respawnPosition = RespawnManager.Instance.GetRespawnPosition(0); 
+        }
+        else
+        {
+            respawnPosition = transform.position; 
+            Debug.LogWarning("RespawnManager not found. Using current position as initial spawn point.");
+        }
+
         Initialize(maxSanity, maxStamina);
     }
 
@@ -69,26 +106,59 @@ public class PlayerStats : MonoBehaviour
         CurrentSanity = s;
         currentStamina = m;
         isExhausted = false;
+        currentLife = maxLives;
         OnSanityUpdate?.Invoke(currentSanity, maxSanity);
         OnStaminaUpdate?.Invoke(currentStamina, maxStamina);
+        OnLifeUpdate?.Invoke(currentLife);
     }
-
-    // ⭐ NEW: DEBUG INPUT FOR SANITY (กด K เพื่อลด 1, L เพื่อเพิ่ม 10)
-    void Update()
+    
+    // Checkpoint Logic
+    /// <summary>
+    /// กำหนดตำแหน่งปัจจุบันของผู้เล่นให้เป็นจุดเกิดใหม่ (Checkpoint)
+    /// </summary>
+    public void SetRespawnPoint()
     {
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            LoseSanity(1f);
-            Debug.Log($"Sanity Reduced to: {CurrentSanity}");
-        }
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            RecoverSanity(10f);
-            Debug.Log($"Sanity Recovered to: {CurrentSanity}");
-        }
+        respawnPosition = transform.position;
+        Debug.Log($"Respawn Point set to: {respawnPosition}");
     }
 
+    // Respawn Logic
+    public void RespawnPlayer()
+    {
+        // 1. รีเซ็ตค่าสถิติ
+        CurrentSanity = maxSanity;
+        currentStamina = maxStamina;
+        isExhausted = false;
+
+        // 2. Teleport
+        transform.position = respawnPosition;
+        
+        // 3. เล่นเสียงเอฟเฟกต์ Respawn
+        // if (respawnSFX != null && audioSource != null)
+        // {
+        //     audioSource.PlayOneShot(respawnSFX);
+        // }
+        
+        Debug.Log($"Player Respawned at: {respawnPosition}");
+    }
+
+    private void HandleDeath()
+    {
+        if (currentLife <= 0)
+        {
+            OnGameOver?.Invoke();
+            Debug.Log("GAME OVER! No lives remaining.");
+            return;
+        }
+
+        currentLife--;
+        OnLifeUpdate?.Invoke(currentLife);
+
+        RespawnPlayer();
+    }
+    
     // Sanity Methods
+    public void ApplySanityDrain(float amount) { CurrentSanity -= amount; }
     public void LoseSanity(float amount) { CurrentSanity -= amount; }
     public void RecoverSanity(float amount) { CurrentSanity += amount; }
 
@@ -120,5 +190,11 @@ public class PlayerStats : MonoBehaviour
         isExhausted = exhausted;
         if (isExhausted) OnExhausted?.Invoke();
         else OnNotExhausted?.Invoke();
+    }
+
+    // ⭐ DEBUG INPUT REMOVED: เมธอด Update() ไม่มีโค้ดปุ่มกดแล้ว
+    void Update()
+    {
+        // โค้ด Update ว่างเปล่า
     }
 }
