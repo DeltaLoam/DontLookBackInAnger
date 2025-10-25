@@ -23,6 +23,7 @@ public class PlayerStats : MonoBehaviour
 
             if (oldValue != currentSanity)
             {
+                // เรียก SanityVisual ให้ Update Visual Effects
                 OnSanityUpdate?.Invoke(currentSanity, maxSanity);
                 if (currentSanity <= 0) OnSanityZero?.Invoke();
             }
@@ -63,14 +64,18 @@ public class PlayerStats : MonoBehaviour
         OnStaminaUpdate?.Invoke(currentStamina, maxStamina);
     }
 
-    // ⭐ NEW: DEBUG INPUT FOR SANITY (กด K เพื่อลด 1, L เพื่อเพิ่ม 10)
+    // ⭐ DEBUG INPUT FOR SANITY (แก้ไขให้ K ลดต่อเนื่อง)
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.K))
+        // 🔴 K: ลด Sanity อย่างต่อเนื่อง (ใช้ GetKey และ Time.deltaTime)
+        if (Input.GetKey(KeyCode.K))
         {
-            LoseSanity(1f);
-            Debug.Log($"Sanity Reduced to: {CurrentSanity}");
+            // ลด 5 หน่วยต่อวินาที (สามารถปรับค่า 5f ได้ตามต้องการ)
+            LoseSanity(5f * Time.deltaTime);
+            // Debug.Log($"Sanity Draining. Current: {CurrentSanity}"); // เปิดถ้าต้องการดูค่าทุกเฟรม
         }
+
+        // 🟢 L: เพิ่ม Sanity 10 หน่วย ต่อการกด 1 ครั้ง (ใช้ GetKeyDown)
         if (Input.GetKeyDown(KeyCode.L))
         {
             RecoverSanity(10f);
@@ -82,7 +87,7 @@ public class PlayerStats : MonoBehaviour
     public void LoseSanity(float amount) { CurrentSanity -= amount; }
     public void RecoverSanity(float amount) { CurrentSanity += amount; }
 
-    // Stamina Methods
+    // Stamina Methods (เหมือนเดิม)
     public void UseStamina(float amount)
     {
         if (isExhausted) return;
