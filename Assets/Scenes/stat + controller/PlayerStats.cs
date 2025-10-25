@@ -10,8 +10,21 @@ public class PlayerStats : MonoBehaviour
     public float maxSanity = 100f;
     [SerializeField] private float currentSanity;
 
-    public event Action<float, float> OnSanityUpdate; 
-    public event Action OnSanityZero; 
+    // ⭐ NEW: Sanity Regeneration Settings
+    [Header("Sanity Regeneration")]
+    [Tooltip("Sanity จะเริ่มฟื้นฟูหลังจากหยุดลด/ใช้ไปแล้วกี่วินาที")]
+    public float regenDelay = 3f;
+    [Tooltip("ปริมาณ Sanity ที่จะฟื้นฟูต่อ 1 Cycle")]
+    public float regenAmountPerCycle = 1f;
+    [Tooltip("ระยะเวลาเป็นวินาทีระหว่างการฟื้นฟูแต่ละรอบ (1 ต่อ 2 วิ คือ 2f)")]
+    public float regenCycleTime = 2f;
+
+    // ⭐ NEW: Tracking Variables
+    private float timeSinceLastSanityChange; // เวลาที่ผ่านไปตั้งแต่ Sanity มีการเปลี่ยนแปลงครั้งล่าสุด
+    private float regenTimer; // ตัวจับเวลาสำหรับรอบการฟื้นฟู
+
+    public event Action<float, float> OnSanityUpdate;
+    public event Action OnSanityZero;
 
     public float CurrentSanity
     {
@@ -23,11 +36,14 @@ public class PlayerStats : MonoBehaviour
 
             if (oldValue != currentSanity)
             {
+                // ⭐ NEW: รีเซ็ตตัวจับเวลาเมื่อมีการเปลี่ยนแปลง Sanity
+                timeSinceLastSanityChange = 0f;
+
                 OnSanityUpdate?.Invoke(currentSanity, maxSanity);
                 if (currentSanity <= 0 && oldValue > 0)
                 {
                     OnSanityZero?.Invoke();
-                    HandleDeath(); 
+                    HandleDeath();
                 }
             }
         }
@@ -55,29 +71,29 @@ public class PlayerStats : MonoBehaviour
     // III. LIFE STATS
     // --------------------------------------------------
     [Header("Life Stats")]
-    public int maxLives = 3; 
-    [SerializeField] private int currentLife; 
+    public int maxLives = 3;
+    [SerializeField] private int currentLife;
 
     public int CurrentLife => currentLife;
 
-    public event Action<int> OnLifeUpdate; 
-    public event Action OnGameOver; 
+    public event Action<int> OnLifeUpdate;
+    public event Action OnGameOver;
 
     // --------------------------------------------------
     // IV. RESPAWN LOGIC & AUDIO
     // --------------------------------------------------
     [Header("Respawn & Audio")]
     [Tooltip("ตำแหน่งเกิดใหม่ที่ถูกบันทึกไว้ล่าสุด")]
-    private Vector3 respawnPosition; 
+    private Vector3 respawnPosition;
 
     [Tooltip("AudioSource สำหรับเล่นเสียง")]
-    private AudioSource audioSource; 
+    private AudioSource audioSource;
 
     // [Tooltip("เสียงที่จะเล่นเมื่อผู้เล่นเกิดใหม่")]
     // public AudioClip respawnSFX; 
-    
+
     // --------------------------------------------------
-    
+
     void Awake()
     {
         // 1. เตรียม AudioSource
@@ -86,15 +102,17 @@ public class PlayerStats : MonoBehaviour
         {
             audioSource = gameObject.AddComponent<AudioSource>();
         }
-        
-        // 2. ตั้งค่าจุดเกิดเริ่มต้น
+
+        // 2. ตั้งค่าจุดเกิดเริ่มต้น (สมมติว่าคุณมี RespawnManager)
+        // Note: หาก RespawnManager ไม่มีอยู่ อาจต้องลบเงื่อนไขนี้ออก
         if (RespawnManager.Instance != null)
         {
-            respawnPosition = RespawnManager.Instance.GetRespawnPosition(0); 
+            // ใช้ 0 เป็น ID/Index สำหรับจุดเกิดเริ่มต้น หรือตำแหน่งอื่นที่เหมาะสม
+            respawnPosition = RespawnManager.Instance.GetRespawnPosition(0);
         }
         else
         {
-            respawnPosition = transform.position; 
+            respawnPosition = transform.position;
             Debug.LogWarning("RespawnManager not found. Using current position as initial spawn point.");
         }
 
@@ -110,12 +128,13 @@ public class PlayerStats : MonoBehaviour
         OnSanityUpdate?.Invoke(currentSanity, maxSanity);
         OnStaminaUpdate?.Invoke(currentStamina, maxStamina);
         OnLifeUpdate?.Invoke(currentLife);
+
+        // ⭐ NEW: ตั้งค่า regenTimer เริ่มต้น
+        regenTimer = regenCycleTime;
+        timeSinceLastSanityChange = 0f;
     }
-    
+
     // Checkpoint Logic
-    /// <summary>
-    /// กำหนดตำแหน่งปัจจุบันของผู้เล่นให้เป็นจุดเกิดใหม่ (Checkpoint)
-    /// </summary>
     public void SetRespawnPoint()
     {
         respawnPosition = transform.position;
@@ -132,13 +151,13 @@ public class PlayerStats : MonoBehaviour
 
         // 2. Teleport
         transform.position = respawnPosition;
-        
+
         // 3. เล่นเสียงเอฟเฟกต์ Respawn
         // if (respawnSFX != null && audioSource != null)
         // {
-        //     audioSource.PlayOneShot(respawnSFX);
+        //      audioSource.PlayOneShot(respawnSFX);
         // }
-        
+
         Debug.Log($"Player Respawned at: {respawnPosition}");
     }
 
@@ -156,8 +175,27 @@ public class PlayerStats : MonoBehaviour
 
         RespawnPlayer();
     }
-    
+
+    // ⭐ NEW: Sanity Regeneration Logic
+    private void RegenSanity()
+    {
+        // 1. ตรวจสอบเงื่อนไขการฟื้นฟู
+        if (CurrentSanity >= maxSanity) return; // ถ้าเต็มแล้ว
+        if (timeSinceLastSanityChange < regenDelay) return; // ยังไม่ถึงเวลาดีเลย์
+
+        // 2. จัดการตัวจับเวลา Cycle
+        regenTimer -= Time.deltaTime;
+        if (regenTimer <= 0f)
+        {
+            // 3. ฟื้นฟู Sanity และรีเซ็ต Timer
+            // การใช้ CurrentSanity += amount จะเรียก Setter และจัดการ Clamp และ Event
+            CurrentSanity += regenAmountPerCycle;
+            regenTimer = regenCycleTime;
+        }
+    }
+
     // Sanity Methods
+    // ⭐ สำคัญ: เมธอดเหล่านี้ถูกแก้ไขให้เรียก Setter เพื่อให้รีเซ็ต Regen Delay
     public void ApplySanityDrain(float amount) { CurrentSanity -= amount; }
     public void LoseSanity(float amount) { CurrentSanity -= amount; }
     public void RecoverSanity(float amount) { CurrentSanity += amount; }
@@ -192,9 +230,13 @@ public class PlayerStats : MonoBehaviour
         else OnNotExhausted?.Invoke();
     }
 
-    // ⭐ DEBUG INPUT REMOVED: เมธอด Update() ไม่มีโค้ดปุ่มกดแล้ว
+    // ⭐ เมธอด Update() ถูกนำมาใช้ในการจัดการ Sanity Regeneration
     void Update()
     {
-        // โค้ด Update ว่างเปล่า
+        // ⭐ NEW: อัปเดตตัวจับเวลาสำหรับ Delay
+        timeSinceLastSanityChange += Time.deltaTime;
+
+        // เรียกใช้ฟังก์ชันฟื้นฟู Sanity
+        RegenSanity();
     }
 }

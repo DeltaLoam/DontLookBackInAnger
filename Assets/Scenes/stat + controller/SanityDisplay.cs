@@ -58,7 +58,7 @@ public class SanityDisplay : MonoBehaviour
     {
         // 1. อัปเดตข้อความเปอร์เซ็นต์
         int percentageInt = Mathf.RoundToInt(currentSanity / maxSanity * 100f);
-        sanityText.text = $"Sanity: {percentageInt}%";
+        sanityText.text = $"{percentageInt}%";
 
         // 2. อัปเดตความรุนแรงของการสั่น
         if (currentSanity >= mildThreshold)
