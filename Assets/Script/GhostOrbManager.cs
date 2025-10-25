@@ -10,8 +10,10 @@ public class GhostOrbManager : MonoBehaviour
     public int requiredOrbsToExit = 4;
 
     [Header("Scene Settings")]
-    [Tooltip("Name of the scene to load when exit is triggered.")]
     public string nextSceneName;
+
+    [Header("UI")]
+    public GhostOrbUI orbUI; // Reference to the UI script
 
     private void Awake()
     {
@@ -25,6 +27,10 @@ public class GhostOrbManager : MonoBehaviour
     {
         totalGhostOrbs++;
         Debug.Log($"[GhostOrbManager] Ghost Orbs Collected: {totalGhostOrbs}");
+
+        // Update UI
+        if (orbUI != null)
+            orbUI.UpdateUI();
     }
 
     public void TryTeleport()
