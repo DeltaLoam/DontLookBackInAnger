@@ -8,13 +8,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/mainscene.unity
     guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Menu/MainMenu.unity
     guid: 881647c9df23a446c8abf568c4b8491a
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Menu/MultiplayerLobby.unity
     guid: 1c5f385eb143044ac858aad3694f345c
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Menu/WaitingRoom.unity
     guid: a726164f1074e477ab049b8ddacf9359
   m_configObjects:
