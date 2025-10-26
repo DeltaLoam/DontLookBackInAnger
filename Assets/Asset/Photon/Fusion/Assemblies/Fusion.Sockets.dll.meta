@@ -36,5 +36,5 @@ AssetOrigin:
   productId: 267958
   packageName: Photon Fusion
   packageVersion: 2.0.8
-  assetPath: Assets/Photon/Fusion/Assemblies/Fusion.Sockets.dll
+  assetPath: Assets/Asset/Photon/Fusion/Assemblies/Fusion.Sockets.dll
   uploadId: 807342

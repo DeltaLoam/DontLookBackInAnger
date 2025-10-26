@@ -10,5 +10,5 @@ AssetOrigin:
   productId: 267958
   packageName: Photon Fusion
   packageVersion: 2.0.8
-  assetPath: Assets/Photon/Fusion/Runtime/Statistics/Resources/FusionStatsResources/NetworkObjectStatistics.prefab
+  assetPath: Assets/Asset/Photon/Fusion/Runtime/Statistics/Resources/FusionStatsResources/NetworkObjectStatistics.prefab
   uploadId: 807342

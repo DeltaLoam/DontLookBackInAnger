@@ -23,6 +23,28 @@ namespace Fusion {
     [InlineHelp]
     public GUISkin BaseSkin;
 
+    // --- START: Added for Game Title ---
+    /// <summary>
+    /// The title of the game to be displayed at the top of the menu.
+    /// </summary>
+    [Header("Game Title")]
+    [InlineHelp]
+    public string GameTitle = "My Horror Game";
+
+    /// <summary>
+    /// The font to be used for the game title. If left null, it will use the default font from the GUISkin.
+    /// </summary>
+    [InlineHelp]
+    public Font TitleFont;
+
+    /// <summary>
+    /// The font size for the game title.
+    /// </summary>
+    [InlineHelp]
+    public int TitleFontSize = 32;
+    // --- END: Added for Game Title ---
+
+
     FusionBootstrap _networkDebugStart;
     string _clientCount;
     bool _isMultiplePeerMode;
@@ -60,7 +82,7 @@ namespace Fusion {
 
     protected virtual void Awake() {
 
-      _nicifiedStageNames = ConvertEnumToNicifiedNameLookup<FusionBootstrap.Stage>("Fusion Status: ");
+      _nicifiedStageNames = ConvertEnumToNicifiedNameLookup<FusionBootstrap.Stage>("Server Status: ");
       _networkDebugStart = EnsureNetworkDebugStartExists();
       _clientCount = _networkDebugStart.AutoClients.ToString();
       ValidateClientCount();
@@ -159,7 +181,42 @@ namespace Fusion {
 
       GUI.skin = FusionScalableIMGUI.GetScaledSkin(BaseSkin, out var height, out var width, out var padding, out var margin, out var leftBoxMargin);
 
-      GUILayout.BeginArea(new Rect(leftBoxMargin, margin, width, Screen.height));
+      // --- START: Title Rendering (Outside the Menu Area) ---
+
+      // 1. Create the style for the title.
+      GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+      {
+          alignment = TextAnchor.MiddleCenter,
+          fontSize = TitleFontSize,
+          wordWrap = false // Keep this to ensure it's on a single line
+      };
+
+      if (TitleFont) {
+          titleStyle.font = TitleFont;
+      }
+
+      // 2. Calculate the size and position of the title based on the full screen width.
+      var titleContent = new GUIContent(GameTitle);
+      var titleSize = titleStyle.CalcSize(titleContent);
+
+      // Center the title horizontally on the screen.
+      float titleX = (Screen.width - titleSize.x) / 2;
+      // Position it vertically using the same top margin as the menu.
+      float titleY = margin;
+
+      var titleRect = new Rect(titleX, titleY, titleSize.x, titleSize.y);
+
+      // 3. Draw the title using the calculated Rect. This is NOT in a GUILayout Area, so it won't be clipped.
+      GUI.Label(titleRect, titleContent, titleStyle);
+
+      // 4. Calculate where the main menu box should start, positioning it below the title.
+      float menuStartY = margin + titleSize.y + 10; // 10 pixels of space between title and menu.
+
+      // --- END: Title Rendering ---
+
+
+      // The main menu area now starts below the title.
+      GUILayout.BeginArea(new Rect(leftBoxMargin, menuStartY, width, Screen.height - menuStartY));
       {
         GUILayout.BeginVertical(GUI.skin.window);
         {
@@ -168,7 +225,6 @@ namespace Fusion {
             var stagename = _nicifiedStageNames.TryGetValue(nds.CurrentStage, out var stage) ? stage : "Unrecognized Stage";
             GUILayout.Label(stagename, new GUIStyle(GUI.skin.label) { fontSize = (int)(GUI.skin.label.fontSize * .8f), alignment = TextAnchor.UpperLeft });
 
-            // Add button to hide Shutdown option after all connect, which just enables AutoHide - so that interface will reappear after a disconnect.
             if (nds.AutoHideGUI == false && nds.CurrentStage == FusionBootstrap.Stage.AllConnected) {
               if (GUILayout.Button("X", GUILayout.ExpandHeight(true), GUILayout.Width(height))) {
                 nds.AutoHideGUI = true;
@@ -191,11 +247,11 @@ namespace Fusion {
             }
             GUILayout.EndHorizontal();
 
-            if (GUILayout.Button(EnableHotkeys ? "Start Single Player (I)" : "Start Single Player", GUILayout.Height(height))) {
+            if (GUILayout.Button(EnableHotkeys ? "Start Single Player" : "Start Single Player", GUILayout.Height(height))) {
               nds.StartSinglePlayer();
             }
 
-            if (GUILayout.Button(EnableHotkeys ? "Start Shared Client (P)" : "Start Shared Client", GUILayout.Height(height))) {
+            if (GUILayout.Button(EnableHotkeys ? "Start Shared Client" : "Start Shared Client", GUILayout.Height(height))) {
               if (_isMultiplePeerMode) {
                 StartMultipleSharedClients(nds);
               } else {
@@ -203,7 +259,7 @@ namespace Fusion {
               }
             }
 
-            if (GUILayout.Button(EnableHotkeys ? "Start Server (S)" : "Start Server", GUILayout.Height(height))) {
+            if (GUILayout.Button(EnableHotkeys ? "Start Server" : "Start Server", GUILayout.Height(height))) {
               if (_isMultiplePeerMode) {
                 StartServerWithClients(nds);
 
@@ -212,7 +268,7 @@ namespace Fusion {
               }
             }
 
-            if (GUILayout.Button(EnableHotkeys ? "Start Host (H)" : "Start Host", GUILayout.Height(height))) {
+            if (GUILayout.Button(EnableHotkeys ? "Start Host" : "Start Host", GUILayout.Height(height))) {
               if (_isMultiplePeerMode) {
                 StartHostWithClients(nds);
               } else {
@@ -220,7 +276,7 @@ namespace Fusion {
               }
             }
 
-            if (GUILayout.Button(EnableHotkeys ? "Start Client (C)" : "Start Client", GUILayout.Height(height))) {
+            if (GUILayout.Button(EnableHotkeys ? "Start Client" : "Start Client", GUILayout.Height(height))) {
               if (_isMultiplePeerMode) {
                 StartMultipleClients(nds);
               } else {
@@ -228,7 +284,7 @@ namespace Fusion {
               }
             }
 
-            if (GUILayout.Button(EnableHotkeys ? "Start Auto Host Or Client (A)" : "Start Auto Host Or Client", GUILayout.Height(height))) {
+            if (GUILayout.Button(EnableHotkeys ? "Start Auto Host Or Client" : "Start Auto Host Or Client", GUILayout.Height(height))) {
               if (_isMultiplePeerMode) {
                 StartMultipleAutoClients(nds);
               } else {
@@ -244,7 +300,6 @@ namespace Fusion {
                 GUILayout.Label("", GUILayout.Width(4));
                 string newcount = GUILayout.TextField(_clientCount, 10, GUILayout.Width(width * .25f), GUILayout.Height(height));
                 if (_clientCount != newcount) {
-                  // Remove everything but numbers from our client count string.
                   _clientCount = newcount;
                   ValidateClientCount();
                 }
@@ -265,6 +320,7 @@ namespace Fusion {
 
       GUI.skin = holdskin;
     }
+
 
     private void StartHostWithClients(FusionBootstrap nds) {
       int count;

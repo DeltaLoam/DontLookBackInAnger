@@ -1,17 +1,18 @@
 using UnityEngine;
+using Fusion;
 
 [RequireComponent(typeof(AudioSource))]
 public class AmbientBoxArea : MonoBehaviour
 {
     [Header("Area Settings")]
-    [SerializeField] private BoxCollider area;      // defines rectangular area
+    [SerializeField] private BoxCollider area;
     [SerializeField] private float fadeSpeed = 1.5f;
 
     [Header("Audio Settings")]
-    [SerializeField] private bool playOnStart = true; // optional for default zone ambience
+    [SerializeField] private bool playOnStart = false;
 
     private AudioSource audioSource;
-    private Transform player;
+    private Transform localPlayer;
     private float targetVolume;
 
     private void Awake()
@@ -24,8 +25,6 @@ public class AmbientBoxArea : MonoBehaviour
 
     private void Start()
     {
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
-
         if (playOnStart)
         {
             audioSource.volume = 1f;
@@ -35,12 +34,13 @@ public class AmbientBoxArea : MonoBehaviour
 
     private void Update()
     {
-        if (player == null || area == null) return;
+        if (localPlayer == null || area == null)
+            return;
 
-        bool inside = area.bounds.Contains(player.position);
+        bool inside = area.bounds.Contains(localPlayer.position);
         targetVolume = inside ? 1f : 0f;
 
-        // Smoothly fade in/out
+        // Smooth fade in/out
         audioSource.volume = Mathf.MoveTowards(audioSource.volume, targetVolume, fadeSpeed * Time.deltaTime);
 
         if (audioSource.volume > 0f && !audioSource.isPlaying)
@@ -49,12 +49,19 @@ public class AmbientBoxArea : MonoBehaviour
             audioSource.Stop();
     }
 
+    public void AssignLocalPlayer(Transform playerTransform)
+    {
+        localPlayer = playerTransform;
+    }
+
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
         if (area == null) return;
         Gizmos.color = new Color(0.2f, 0.6f, 1f, 0.25f);
         Gizmos.DrawCube(area.bounds.center, area.bounds.size);
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireCube(area.bounds.center, area.bounds.size);
     }
 #endif
 }

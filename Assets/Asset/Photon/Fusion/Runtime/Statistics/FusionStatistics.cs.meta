@@ -18,5 +18,5 @@ AssetOrigin:
   productId: 267958
   packageName: Photon Fusion
   packageVersion: 2.0.8
-  assetPath: Assets/Photon/Fusion/Runtime/Statistics/FusionStatistics.cs
+  assetPath: Assets/Asset/Photon/Fusion/Runtime/Statistics/FusionStatistics.cs
   uploadId: 807342

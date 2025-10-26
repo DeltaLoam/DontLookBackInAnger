@@ -14,5 +14,5 @@ AssetOrigin:
   productId: 267958
   packageName: Photon Fusion
   packageVersion: 2.0.8
-  assetPath: Assets/Photon/Fusion/Editor/FusionWeaverTriggerImporter.cs
+  assetPath: Assets/Asset/Photon/Fusion/Editor/FusionWeaverTriggerImporter.cs
   uploadId: 807342

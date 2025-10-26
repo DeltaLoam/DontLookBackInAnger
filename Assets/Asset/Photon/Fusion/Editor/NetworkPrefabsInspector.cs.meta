@@ -14,5 +14,5 @@ AssetOrigin:
   productId: 267958
   packageName: Photon Fusion
   packageVersion: 2.0.8
-  assetPath: Assets/Photon/Fusion/Editor/NetworkPrefabsInspector.cs
+  assetPath: Assets/Asset/Photon/Fusion/Editor/NetworkPrefabsInspector.cs
   uploadId: 807342
