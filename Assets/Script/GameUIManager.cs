@@ -1,46 +1,46 @@
 using UnityEngine;
 
+// This script lives in the GameScene and controls the in-game UI.
 public class GameUIManager : MonoBehaviour
 {
+    // A Singleton instance so the spawned player can easily find it.
     public static GameUIManager Instance { get; private set; }
 
     [Header("UI Panels")]
-    [SerializeField] private Canvas inGameUICanvas;
+    // Drag the parent GameObject of your in-game UI (the Canvas or a panel) here.
+    [SerializeField] private GameObject inGameUIPanel;
 
     private void Awake()
     {
+        // Set up the Singleton pattern. When the GameScene loads, this will run.
         if (Instance == null)
         {
             Instance = this;
         }
         else
         {
+            // If for some reason another instance exists, destroy this one.
             Destroy(gameObject);
         }
     }
 
-    // THIS IS THE CRITICAL CHANGE
     private void Start()
     {
-        // When the game scene starts, we must ensure two things:
-        // 1. Our in-game UI is hidden.
-        // 2. The cursor is UNLOCKED, so the Fusion menu works.
-        // The HideInGameUI() function already does both of these things for us.
-        HideInGameUI();
+        // When the GameScene first loads, the in-game UI should be hidden
+        // until the player has actually spawned.
+        // We do this here just to be safe.
+        if (inGameUIPanel != null)
+        {
+            inGameUIPanel.SetActive(false);
+        }
     }
 
-    // This function is called by the player script when it spawns.
-public void ShowInGameUI()
-{
-    if (inGameUICanvas != null) inGameUICanvas.enabled = true; // Use .enabled
-    Cursor.lockState = CursorLockMode.Locked;
-    Cursor.visible = false;
-}
-
-public void HideInGameUI()
-{
-    if (inGameUICanvas != null) inGameUICanvas.enabled = false; // Use .enabled
-    Cursor.lockState = CursorLockMode.None;
-    Cursor.visible = true;
-}
+    // This is called by the PlayerNetworkController after it has spawned.
+    public void ShowInGameUI()
+    {
+        if (inGameUIPanel != null)
+        {
+            inGameUIPanel.SetActive(true);
+        }
+    }
 }

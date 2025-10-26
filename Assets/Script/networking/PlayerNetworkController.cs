@@ -17,35 +17,35 @@ namespace EasyPeasyFirstPersonController
             _motor = GetComponent<FirstPersonController_Motor>();
         }
 
-        public override void Spawned()
-        {
-            if (HasStateAuthority)
-            {
-                // This is our player. Tell the motor to run visual effects.
-                _motor.IsLocalPlayer = true;
-                if (Camera.main != null) Camera.main.gameObject.SetActive(false);
-                _motor.SetCursorVisibility(false); // Use the motor's own method
-            }
-            else
-            {
-                // This is a remote player. Disable their camera and tell motor not to run visuals.
-                _motor.playerCamera.gameObject.SetActive(false);
-                _motor.IsLocalPlayer = false;
-            }
-            if (HasStateAuthority)
-             {
-                _motor.IsLocalPlayer = true;
-                if (Camera.main != null) Camera.main.gameObject.SetActive(false);
+// Inside PlayerNetworkController.cs
 
-                 // This line tells our manager to show the in-game UI.
-                GameUIManager.Instance.ShowInGameUI();
-             }
-            else
-             {
-                 _motor.playerCamera.gameObject.SetActive(false);
-                _motor.IsLocalPlayer = false;
-             }   
+public override void Spawned()
+{
+    if (HasStateAuthority)
+    {
+        // This is our local player.
+        _motor.IsLocalPlayer = true;
+        if (Camera.main != null) Camera.main.gameObject.SetActive(false);
+        _motor.SetCursorVisibility(false);
+
+        // --- THIS IS THE CRITICAL LINE ---
+        // Find the GameUIManager instance that lives in this scene and tell it to show the UI.
+        if (GameUIManager.Instance != null)
+        {
+            GameUIManager.Instance.ShowInGameUI();
         }
+        else
+        {
+            Debug.LogError("GameUIManager.Instance not found! Make sure the UIManager is in your GameScene.");
+        }
+    }
+    else
+    {
+        // This is a remote player.
+        _motor.playerCamera.gameObject.SetActive(false);
+        _motor.IsLocalPlayer = false;
+    }
+}
         
 
         public void OnInput(NetworkRunner runner, NetworkInput input)
