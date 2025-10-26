@@ -274,13 +274,13 @@ MonoBehaviour:
   canCrouch: 1
   ceilingCheckQueryTriggerInteraction: 1
   groundCheckQueryTriggerInteraction: 1
-  groundCheck: {fileID: 0}
+  groundCheck: {fileID: 8149316201607086272}
   groundDistance: 0.2
   groundMask:
     serializedVersion: 2
     m_Bits: 0
-  playerCamera: {fileID: 0}
-  cameraParent: {fileID: 0}
+  playerCamera: {fileID: 9191387655692598457}
+  cameraParent: {fileID: 4705296408141949326}
   isSprinting: 0
   isCrouching: 0
   isSliding: 0
