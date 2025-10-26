@@ -21,7 +21,7 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
     {
         // Find the active NetworkRunner and register this spawner with it.
         // This is a robust way to connect scene objects to the persistent runner.
-        var runner = FindObjectOfType<NetworkRunner>();
+        var runner = FindAnyObjectByType<NetworkRunner>();
         if (runner != null)
         {
             runner.AddCallbacks(this);
@@ -97,7 +97,7 @@ public class PlayerSpawner : MonoBehaviour, INetworkRunnerCallbacks
     public void OnInput(NetworkRunner runner, NetworkInput input) { }
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
-    public void OnConnectedToServer(NetworkRunner runner) { }
+    void INetworkRunnerCallbacks.OnConnectedToServer(NetworkRunner runner) { }
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
