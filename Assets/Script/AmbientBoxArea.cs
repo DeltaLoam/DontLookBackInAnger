@@ -4,14 +4,16 @@ using UnityEngine;
 public class AmbientBoxArea : MonoBehaviour
 {
     [Header("Area Settings")]
-    [SerializeField] private BoxCollider area;      // defines rectangular area
+    [SerializeField] private BoxCollider area;      
     [SerializeField] private float fadeSpeed = 1.5f;
 
     [Header("Audio Settings")]
-    [SerializeField] private bool playOnStart = true; // optional for default zone ambience
+    [SerializeField] private bool playOnStart = true; 
+
+    [Header("Player Settings")]
+    [SerializeField] private Transform player; // manually assign your actual player here
 
     private AudioSource audioSource;
-    private Transform player;
     private float targetVolume;
 
     private void Awake()
@@ -24,8 +26,6 @@ public class AmbientBoxArea : MonoBehaviour
 
     private void Start()
     {
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
-
         if (playOnStart)
         {
             audioSource.volume = 1f;
@@ -40,7 +40,6 @@ public class AmbientBoxArea : MonoBehaviour
         bool inside = area.bounds.Contains(player.position);
         targetVolume = inside ? 1f : 0f;
 
-        // Smoothly fade in/out
         audioSource.volume = Mathf.MoveTowards(audioSource.volume, targetVolume, fadeSpeed * Time.deltaTime);
 
         if (audioSource.volume > 0f && !audioSource.isPlaying)

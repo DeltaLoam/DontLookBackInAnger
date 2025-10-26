@@ -3,22 +3,16 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-    // Called by the Play button
+    // Called when the "Play" button is clicked
     public void PlayGame()
     {
-        // Replace "GameScene" with your actual game scene name
-        SceneManager.LoadScene("Map");
+        SceneManager.LoadScene("Map"); // make sure the scene name matches exactly
     }
 
-    // Called by the Quit button
+    // Called when the "Quit" button is clicked
     public void QuitGame()
     {
-        Debug.Log("Quit Game");
-        Application.Quit();
-
-        // This line helps when testing inside the editor
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#endif
+        Debug.Log("Game Quit!"); // shows in console for testing in Editor
+        Application.Quit(); // actually quits when built
     }
 }
