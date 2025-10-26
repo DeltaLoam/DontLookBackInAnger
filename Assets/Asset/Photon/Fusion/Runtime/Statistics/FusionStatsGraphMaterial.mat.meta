@@ -11,5 +11,5 @@ AssetOrigin:
   productId: 267958
   packageName: Photon Fusion
   packageVersion: 2.0.8
-  assetPath: Assets/Photon/Fusion/Runtime/Statistics/FusionStatsGraphMaterial.mat
+  assetPath: Assets/Asset/Photon/Fusion/Runtime/Statistics/FusionStatsGraphMaterial.mat
   uploadId: 807342

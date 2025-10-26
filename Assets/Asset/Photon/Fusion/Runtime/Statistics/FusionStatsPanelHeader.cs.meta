@@ -6,5 +6,5 @@ AssetOrigin:
   productId: 267958
   packageName: Photon Fusion
   packageVersion: 2.0.8
-  assetPath: Assets/Photon/Fusion/Runtime/Statistics/FusionStatsPanelHeader.cs
+  assetPath: Assets/Asset/Photon/Fusion/Runtime/Statistics/FusionStatsPanelHeader.cs
   uploadId: 807342

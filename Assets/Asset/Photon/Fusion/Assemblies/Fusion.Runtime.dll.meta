@@ -41,5 +41,5 @@ AssetOrigin:
   productId: 267958
   packageName: Photon Fusion
   packageVersion: 2.0.8
-  assetPath: Assets/Photon/Fusion/Assemblies/Fusion.Runtime.dll
+  assetPath: Assets/Asset/Photon/Fusion/Assemblies/Fusion.Runtime.dll
   uploadId: 807342

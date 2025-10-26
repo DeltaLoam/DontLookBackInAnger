@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 6287749392276037140}
   - component: {fileID: 7963999126436909677}
   - component: {fileID: 7628061428021319781}
+  - component: {fileID: 8646725316286450697}
+  - component: {fileID: 6749863461152637158}
   m_Layer: 0
   m_Name: GhostOrb
   m_TagString: Untagged
@@ -136,3 +138,36 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &8646725316286450697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6088017609910216613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SortKey: 1019542342
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 6749863461152637158}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &6749863461152637158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6088017609910216613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d55348aad08a54d54beca63de5e53bb2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  orbID: 0
+  rotateSpeed: 50

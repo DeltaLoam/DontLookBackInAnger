@@ -14,5 +14,5 @@ AssetOrigin:
   productId: 267958
   packageName: Photon Fusion
   packageVersion: 2.0.8
-  assetPath: Assets/Photon/Fusion/Runtime/Utilities/RunnerVisibility/EnableOnSingleRunner.cs
+  assetPath: Assets/Asset/Photon/Fusion/Runtime/Utilities/RunnerVisibility/EnableOnSingleRunner.cs
   uploadId: 807342

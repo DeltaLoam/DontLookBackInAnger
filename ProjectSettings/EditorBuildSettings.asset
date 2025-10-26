@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Map.unity
+    guid: d218fd36b89cfe349837cb3a415b82a8
+  - enabled: 1
     path: Assets/Scenes/mainscene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   - enabled: 0
@@ -26,6 +29,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MichaelJackson.unity
     guid: 2ed481ca894bff4438c124369d81e80a
+  - enabled: 1
+    path: Assets/Scenes/MultiplayerTest.unity
+    guid: 33299e05a8bfa419c9e773aa38ae20f3
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
