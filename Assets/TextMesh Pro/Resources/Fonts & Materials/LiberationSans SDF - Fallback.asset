@@ -317,6 +317,7 @@ Texture2D:
     serializedVersion: 2
     Hash: 00000000000000000000000000000000
 <<<<<<< HEAD
+<<<<<<< HEAD
   m_IsAlphaChannelOptional: 0
   serializedVersion: 3
   m_Width: 1
@@ -324,12 +325,17 @@ Texture2D:
   m_CompleteImageSize: 1
   m_MipsStripped: 0
 =======
+=======
+>>>>>>> parent of 7283b03 (up to aki now)
   m_ForcedFallbackFormat: 4
   m_DownscaleFallback: 0
   serializedVersion: 2
   m_Width: 0
   m_Height: 0
   m_CompleteImageSize: 0
+<<<<<<< HEAD
+>>>>>>> parent of 7283b03 (up to aki now)
+=======
 >>>>>>> parent of 7283b03 (up to aki now)
   m_TextureFormat: 1
   m_MipCount: 1
@@ -350,9 +356,14 @@ Texture2D:
   m_LightmapFormat: 0
   m_ColorSpace: 0
 <<<<<<< HEAD
+<<<<<<< HEAD
   m_PlatformBlob: 
   image data: 1
   _typelessdata: 00
+=======
+  image data: 0
+  _typelessdata: 
+>>>>>>> parent of 7283b03 (up to aki now)
 =======
   image data: 0
   _typelessdata: 
