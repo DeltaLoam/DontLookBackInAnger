@@ -1,56 +1,78 @@
 ﻿using UnityEngine;
+using Fusion;
+using System;
 
-// ต้องแนบไปกับ GameObject ที่มี FirstPersonController และ PlayerStats
+// สคริปต์นี้มีหน้าที่ติดตามและเข้าถึง Stamina ของ Local Player
 public class StaminaSync : MonoBehaviour
 {
-    private PlayerStats playerStats;
-    // เราใช้ namespace ของ Controller เดิมเพื่อเข้าถึงมัน
-    private EasyPeasyFirstPersonController.FirstPersonController controller;
+    // ⭐ Reference to PlayerStats (จะถูกกำหนดค่าโดยอัตโนมัติผ่าน Event)
+    [Header("Dependencies")]
+    public PlayerStats playerStats;
+
+    // --------------------------------------------------
+    // Initialization & Event Handling
+    // --------------------------------------------------
 
     void Awake()
     {
-        playerStats = GetComponent<PlayerStats>();
-        controller = GetComponent<EasyPeasyFirstPersonController.FirstPersonController>();
-        
-        if (playerStats == null || controller == null)
-        {
-            Debug.LogError("StaminaSync requires PlayerStats and FirstPersonController on this GameObject.");
-            enabled = false;
-        }
+        // สมัครรับสัญญาณจาก Local Player Stats ทันที
+        PlayerStats.OnLocalPlayerStatsReady += SetPlayerStats;
     }
+
+    private void SetPlayerStats(PlayerStats stats)
+    {
+        // หากมีการเชื่อมต่อเก่า ให้ยกเลิกก่อน (ป้องกันการสมัครซ้ำ)
+        if (playerStats != null)
+        {
+            // ถ้า StaminaSync มี Event ที่สมัครรับอยู่ ให้ยกเลิกที่นี่
+        }
+
+        // ตั้งค่า PlayerStats ใหม่ และยกเลิกการสมัครรับ Static Event
+        playerStats = stats;
+        PlayerStats.OnLocalPlayerStatsReady -= SetPlayerStats;
+
+        Debug.Log("StaminaSync: Successfully attached to Local Player Stats.");
+    }
+
+
+    // --------------------------------------------------
+    // Core Logic (ตัวอย่างการใช้งาน Stamina)
+    // --------------------------------------------------
 
     void Update()
     {
-        if (playerStats == null || controller == null) return;
+        // รัน Logic ที่เกี่ยวข้องกับการอ่านค่า Stamina ใน Update
+        CheckAndLogStamina();
+    }
 
-        // ------------------------------------------------------
-        // 1. SYNC Stamina (Drain and Regen)
-        // เราใช้ field 'isSprinting' ที่เป็น public ของ Controller มาพิจารณา
-        // ------------------------------------------------------
-        bool isCurrentlySprinting = controller.isSprinting;
-        
-        if (isCurrentlySprinting) 
+    private void CheckAndLogStamina()
+    {
+        if (playerStats == null) return;
+
+        // ⭐⭐⭐ แก้ไข CS1061: ใช้ CurrentStaminaReadOnly แทน CurrentStamina ⭐⭐⭐
+        float currentStamina = playerStats.CurrentStaminaReadOnly;
+        float maxStamina = playerStats.maxStamina;
+
+        // ตัวอย่าง Logic การตรวจสอบค่า:
+        if (currentStamina < maxStamina * 0.1f && !playerStats.IsExhausted)
         {
-            playerStats.UseStamina(playerStats.staminaDrainRate * Time.deltaTime);
-        }
-        else if (playerStats.CurrentStamina < playerStats.maxStamina)
-        {
-            playerStats.RecoverStamina(playerStats.regenRate * Time.deltaTime);
+            // คุณอาจเพิ่ม Logic เช่น การแสดง Visual Warning ที่นี่
+            // Debug.LogWarning("Stamina is critically low!");
         }
 
-        // ------------------------------------------------------
-        // 2. BLOCK SPRINTING (โดยการควบคุม field 'canSprint' ของ Controller)
-        // ------------------------------------------------------
-        // ถ้าผู้เล่นหมดแรงหรือ Stamina ใกล้หมด ให้ Controller วิ่งไม่ได้
-        if (playerStats.IsExhausted || playerStats.CurrentStamina < 1f)
+        if (playerStats.IsExhausted)
         {
-            // บังคับปิด canSprint ใน Controller
-            controller.canSprint = false; 
+            // Debug.Log("Player is exhausted!");
         }
-        else
-        {
-            // เปิดให้ Controller วิ่งได้ตามปกติ
-            controller.canSprint = true;
-        }
+    }
+
+    // --------------------------------------------------
+    // Cleanup
+    // --------------------------------------------------
+
+    void OnDestroy()
+    {
+        // ยกเลิกการสมัครรับ Event Static
+        PlayerStats.OnLocalPlayerStatsReady -= SetPlayerStats;
     }
 }

@@ -1,27 +1,59 @@
-using UnityEngine;
+﻿using UnityEngine;
+using System;
+using Fusion; // สำหรับบริบท Network
 
 public class UIAssigner : MonoBehaviour
 {
+    // ไม่ต้องลากใส่ Inspector แล้ว: StaminaBarUI จะถูกค้นหาเอง
     [Header("UI References")]
-    public StaminaBarUI staminaBarUI;
+    private StaminaBarUI staminaBarUI;
 
-    private PlayerStats playerStats;
+    private PlayerStats localPlayerStats;
 
     void Awake()
     {
-        playerStats = GetComponent<PlayerStats>();
+        // ⭐ ค้นหา StaminaBarUI ใน Scene โดยอัตโนมัติ (แก้ปัญหาไม่ต้องลากใส่)
+        staminaBarUI = FindObjectOfType<StaminaBarUI>();
+
+        // สมัครรับสัญญาณจาก Local Player Stats
+        PlayerStats.OnLocalPlayerStatsReady += ReceivePlayerStats;
     }
 
-    void Start()
+    private void ReceivePlayerStats(PlayerStats stats)
     {
-        if (playerStats != null && staminaBarUI != null)
+        if (localPlayerStats == null)
         {
-            staminaBarUI.SetTarget(playerStats);
-            Debug.Log("UI successfully connected to PlayerStats.");
+            localPlayerStats = stats;
+            // เรียก Logic การเชื่อมต่อทันทีที่ Local Stats พร้อม
+            StartLogic();
+
+            // ยกเลิกการสมัครรับ Event
+            PlayerStats.OnLocalPlayerStatsReady -= ReceivePlayerStats;
+        }
+    }
+
+    void StartLogic()
+    {
+        // Logic การ Assign UI
+        if (localPlayerStats != null && staminaBarUI != null)
+        {
+            // ⭐⭐ แก้ไข Error CS1061 โดยการเรียกเมธอด SetTarget ที่ถูกเพิ่มเข้าไป ⭐⭐
+            staminaBarUI.SetTarget(localPlayerStats);
+            Debug.Log("UIAssigner: UI successfully connected to Local Player Stats via FindObjectOfType.");
+        }
+        else if (staminaBarUI == null)
+        {
+            Debug.LogError("UIAssigner failed: StaminaBarUI not found in the Scene (FindObjectOfType failed).");
         }
         else
         {
-            Debug.LogError("UIAssigner failed to connect UI/Stats. Check references.");
+            Debug.LogError("UIAssigner failed: Local Player Stats were not received.");
         }
+    }
+
+    void OnDestroy()
+    {
+        // ยกเลิกการสมัครรับ Event เผื่อไว้
+        PlayerStats.OnLocalPlayerStatsReady -= ReceivePlayerStats;
     }
 }

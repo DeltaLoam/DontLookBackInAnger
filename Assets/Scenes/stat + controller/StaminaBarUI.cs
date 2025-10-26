@@ -1,51 +1,114 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System;
+using TMPro;
 
 public class StaminaBarUI : MonoBehaviour
 {
-    private PlayerStats targetStats;
-    private Image staminaBarImage;
+    [Header("UI References")]
+    public Slider staminaSlider;
+    public TextMeshProUGUI staminaText;
+    public PlayerStats playerStats;
+
+    [Header("Exhaustion Visuals")]
+    public Color exhaustedColor = Color.red;
+    public Color normalColor = Color.green;
+    private Image fillImage;
 
     void Awake()
     {
-        staminaBarImage = GetComponent<Image>();
-        if (staminaBarImage == null)
+        // ⭐ ยังคงสมัครรับ Event เผื่อไว้สำหรับการเชื่อมต่ออื่นๆ
+        PlayerStats.OnLocalPlayerStatsReady += SetPlayerStats;
+
+        if (staminaSlider != null && staminaSlider.fillRect != null)
         {
-            Debug.LogError("StaminaBarUI requires an Image component on this GameObject.");
-            enabled = false;
+            fillImage = staminaSlider.fillRect.GetComponent<Image>();
         }
     }
 
+    // ⭐⭐⭐ แก้ไข Error CS0103: เปลี่ยนจาก private เป็น public ⭐⭐⭐
+    public void SetPlayerStats(PlayerStats stats)
+    {
+        // ป้องกันการตั้งค่าซ้ำ
+        if (playerStats != null)
+        {
+            playerStats.OnStaminaUpdate -= UpdateStaminaBar;
+            playerStats.OnExhausted -= OnExhausted;
+            playerStats.OnNotExhausted -= OnNotExhausted;
+        }
+
+        // ตั้งค่าและเริ่มระบบ
+        playerStats = stats;
+        SetupDisplay(playerStats);
+    }
+
+    private void SetupDisplay(PlayerStats stats)
+    {
+        if (stats == null || staminaSlider == null) return;
+
+        stats.OnStaminaUpdate += UpdateStaminaBar;
+        stats.OnExhausted += OnExhausted;
+        stats.OnNotExhausted += OnNotExhausted;
+
+        UpdateStaminaBar(stats.CurrentStaminaReadOnly, stats.maxStamina);
+
+        // เรายกเลิกการสมัครรับ Event ใน SetPlayerStats/SetTarget
+    }
+
+    // ⭐⭐⭐ เมธอดที่ UIAssigner.cs ใช้เรียก (แก้ Error CS1061 ใน UIAssigner) ⭐⭐⭐
     public void SetTarget(PlayerStats stats)
     {
-        if (targetStats != null)
-        {
-            targetStats.OnStaminaUpdate -= UpdateStaminaBar;
-        }
+        // ยกเลิกการสมัครรับ Event Static เพื่อป้องกันการเชื่อมต่อซ้ำซ้อน
+        PlayerStats.OnLocalPlayerStatsReady -= SetPlayerStats;
 
-        targetStats = stats;
-
-        if (targetStats != null)
-        {
-            targetStats.OnStaminaUpdate += UpdateStaminaBar;
-            UpdateStaminaBar(targetStats.CurrentStamina, targetStats.maxStamina);
-        }
+        // เรียกใช้ Logic การตั้งค่า PlayerStats ที่เราเพิ่งเปลี่ยนเป็น public
+        SetPlayerStats(stats);
     }
 
     private void UpdateStaminaBar(float currentStamina, float maxStamina)
     {
-        if (staminaBarImage == null) return;
+        if (staminaSlider == null) return;
 
-        float fillAmount = currentStamina / maxStamina;
-        staminaBarImage.fillAmount = fillAmount;
+        staminaSlider.maxValue = maxStamina;
+        staminaSlider.value = currentStamina;
+
+        if (staminaText != null)
+        {
+            int percentage = Mathf.RoundToInt(currentStamina / maxStamina * 100f);
+            staminaText.text = $"Stamina: {percentage}%";
+        }
+
+        if (fillImage != null && playerStats != null && !playerStats.IsExhausted)
+        {
+            fillImage.color = normalColor;
+        }
+    }
+
+    private void OnExhausted()
+    {
+        if (fillImage != null)
+        {
+            fillImage.color = exhaustedColor;
+        }
+    }
+
+    private void OnNotExhausted()
+    {
+        if (fillImage != null)
+        {
+            fillImage.color = normalColor;
+        }
     }
 
     void OnDestroy()
     {
-        if (targetStats != null)
+        if (playerStats != null)
         {
-            targetStats.OnStaminaUpdate -= UpdateStaminaBar;
+            playerStats.OnStaminaUpdate -= UpdateStaminaBar;
+            playerStats.OnExhausted -= OnExhausted;
+            playerStats.OnNotExhausted -= OnNotExhausted;
         }
+
+        PlayerStats.OnLocalPlayerStatsReady -= SetPlayerStats;
     }
 }

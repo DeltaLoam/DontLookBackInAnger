@@ -297,7 +297,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxSanity: 100
-  currentSanity: 0
+  _currentSanity: 0
   regenDelay: 3
   regenAmountPerCycle: 1
   regenCycleTime: 1
@@ -332,6 +332,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b1c3c44a2d336b44891244b93965535, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerStats: {fileID: 0}
 --- !u!114 &2296373045752130947
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -344,7 +345,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4bf7f078505c7a349826fbf2f4f437b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  staminaBarUI: {fileID: 0}
 --- !u!114 &7388402837609644898
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -402,6 +402,7 @@ MonoBehaviour:
   Flags: 262145
   NestedObjects: []
   NetworkedBehaviours:
+  - {fileID: 7370548749572253083}
   - {fileID: 8065615703037790769}
   - {fileID: -237686543533050328}
   ForceRemoteRenderTimeframe: 0

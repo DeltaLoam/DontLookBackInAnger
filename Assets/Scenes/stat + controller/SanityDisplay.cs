@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using TMPro;
+using System;
 
 public class SanityDisplay : MonoBehaviour
 {
     // ⭐ UI References
     [Header("UI References")]
+    [Tooltip("PlayerStats จะถูกตั้งค่าโดย Local Player ผ่าน Event")]
     public PlayerStats playerStats;
     public TextMeshProUGUI sanityText;
 
@@ -15,57 +17,87 @@ public class SanityDisplay : MonoBehaviour
     public float severeShakeMagnitude = 7.0f;
     public float shakeSpeed = 50f;
 
-    // ตัวแปร Thresholds (ควรตรงกับ SanityVisual)
+    // ตัวแปร Thresholds
     public float mildThreshold = 75f;
     public float mediumThreshold = 40f;
     public float severeThreshold = 15f;
 
     private float currentShakeMagnitude = 0f;
     private bool isShaking = false;
-    private Vector3 originalTextPosition; // ⭐ ตัวแปรสำคัญสำหรับ Fix ตำแหน่ง
+    private Vector3 originalTextPosition;
+
+    void Awake()
+    {
+        // ⭐ สมัครรับสัญญาณจาก PlayerStats ทันทีที่ UI เริ่มทำงาน
+        PlayerStats.OnLocalPlayerStatsReady += SetPlayerStats;
+    }
 
     void Start()
     {
-        if (playerStats == null || sanityText == null)
+        if (sanityText == null)
         {
-            if (playerStats == null) Debug.LogError("Player Stats reference is missing in SanityDisplay.");
-            if (sanityText == null) Debug.LogError("Sanity Text UI reference is missing in SanityDisplay.");
+            Debug.LogError("SanityDisplay: Sanity Text UI reference is missing.");
             enabled = false;
             return;
         }
 
-        // ⭐ บันทึกตำแหน่งเริ่มต้นของ Text UI (เช่น 20, 20)
         originalTextPosition = sanityText.transform.localPosition;
 
-        playerStats.OnSanityUpdate += UpdateSanityDisplay;
-
-        UpdateSanityDisplay(playerStats.CurrentSanity, playerStats.maxSanity);
+        // กรณีฉุกเฉิน: ถ้า PlayerStats ถูกลากใส่ไว้ก่อน
+        if (playerStats != null)
+        {
+            SetupDisplay(playerStats);
+        }
     }
+
+    private void SetPlayerStats(PlayerStats stats)
+    {
+        // ป้องกันการตั้งค่าซ้ำ
+        if (playerStats != null)
+        {
+            playerStats.OnSanityUpdate -= UpdateSanityDisplay;
+        }
+
+        // ตั้งค่าและเริ่มระบบ
+        playerStats = stats;
+        SetupDisplay(playerStats);
+    }
+
+    private void SetupDisplay(PlayerStats stats)
+    {
+        if (stats == null || sanityText == null) return;
+
+        stats.OnSanityUpdate += UpdateSanityDisplay;
+
+        UpdateSanityDisplay(stats.CurrentSanity, stats.maxSanity);
+        Debug.Log("SanityDisplay: Successfully attached to Local Player Stats.");
+
+        // ⭐ ยกเลิกการสมัครรับ Event Static เพื่อลด Overhead เมื่อทำงานเสร็จแล้ว
+        PlayerStats.OnLocalPlayerStatsReady -= SetPlayerStats;
+    }
+
 
     void Update()
     {
+        // Logic การสั่นของ Text
         if (isShaking && sanityText != null)
         {
             float x = (Mathf.PerlinNoise(Time.time * shakeSpeed, 0f) * 2f - 1f) * currentShakeMagnitude;
             float y = (Mathf.PerlinNoise(0f, Time.time * shakeSpeed) * 2f - 1f) * currentShakeMagnitude;
 
-            // ⭐ ใช้ originalTextPosition เป็นจุดศูนย์กลางของการสั่น
             sanityText.transform.localPosition = originalTextPosition + new Vector3(x, y, 0);
         }
     }
 
     private void UpdateSanityDisplay(float currentSanity, float maxSanity)
     {
-        // 1. อัปเดตข้อความเปอร์เซ็นต์
         int percentageInt = Mathf.RoundToInt(currentSanity / maxSanity * 100f);
-        sanityText.text = $"{percentageInt}%";
+        sanityText.text = $"Sanity: {percentageInt}%";
 
-        // 2. อัปเดตความรุนแรงของการสั่น
         if (currentSanity >= mildThreshold)
         {
             currentShakeMagnitude = 0f;
             isShaking = false;
-            // ⭐ รีเซ็ตตำแหน่งกลับไปที่ตำแหน่งเริ่มต้น (Fix)
             sanityText.transform.localPosition = originalTextPosition;
         }
         else if (currentSanity >= mediumThreshold)
@@ -78,7 +110,7 @@ public class SanityDisplay : MonoBehaviour
             currentShakeMagnitude = mediumShakeMagnitude;
             isShaking = true;
         }
-        else // Severe
+        else
         {
             currentShakeMagnitude = severeShakeMagnitude;
             isShaking = true;
@@ -91,5 +123,7 @@ public class SanityDisplay : MonoBehaviour
         {
             playerStats.OnSanityUpdate -= UpdateSanityDisplay;
         }
+        // ⭐ ยกเลิกการสมัครรับ Event Static
+        PlayerStats.OnLocalPlayerStatsReady -= SetPlayerStats;
     }
 }
