@@ -1,48 +1,64 @@
 using UnityEngine;
-using TMPro; // ⭐ เปลี่ยนมาใช้ TMPro แทน UnityEngine.UI
+using TMPro; // ใช้ TMPro
 using System;
 
 public class LifeDisplayUI : MonoBehaviour
 {
     [Header("References")]
-    [Tooltip("อ้างอิงถึง PlayerStats ของผู้เล่นที่เราต้องการแสดงผล")]
-    public PlayerStats playerStats;
+    // เปลี่ยนเป็น private เพื่อไม่ให้ลากใส่ใน Inspector (ถูกกำหนดค่าอัตโนมัติ)
+    private PlayerStats playerStats;
 
     [Tooltip("องค์ประกอบ UI TextMeshPro ที่จะแสดงจำนวนชีวิต")]
-    public TextMeshProUGUI lifeText; // ⭐ เปลี่ยนชนิดตัวแปรเป็น TextMeshProUGUI
+    public TextMeshProUGUI lifeText; 
 
-    private void OnEnable()
+    void Awake()
     {
-        // สมัครรับ Event เมื่อสคริปต์เปิดใช้งาน
-        if (playerStats != null)
+        // 1. สมัครรับ Static Event ใน Awake เพื่อรอ PlayerStats ของ Local Player
+        PlayerStats.OnLocalPlayerStatsReady += SetPlayerStats;
+
+        // ตรวจสอบ Text Component ทันที (ถ้ายังไม่ได้กำหนดค่า จะแสดง Error)
+        if (lifeText == null)
         {
-            playerStats.OnLifeUpdate += UpdateLifeDisplay;
-            playerStats.OnGameOver += HandleGameOverDisplay;
+            Debug.LogError("LifeDisplayUI: ต้องกำหนดค่า UI TextMeshPro ใน Inspector!");
         }
     }
 
     private void OnDisable()
     {
-        // ยกเลิกการสมัครรับ Event เมื่อสคริปต์ปิดใช้งานเพื่อป้องกัน Error
+        // ยกเลิกการสมัครรับ Event ของ PlayerStats ตัวเก่า (ถ้ามี)
         if (playerStats != null)
         {
             playerStats.OnLifeUpdate -= UpdateLifeDisplay;
             playerStats.OnGameOver -= HandleGameOverDisplay;
         }
+        // ยกเลิกการสมัครรับ Static Event
+        PlayerStats.OnLocalPlayerStatsReady -= SetPlayerStats;
     }
 
-    private void Start()
+    /// <summary>
+    /// ถูกเรียกเมื่อ PlayerStats ของ Local Player พร้อมใช้งาน
+    /// </summary>
+    /// <param name="stats">Reference ถึง PlayerStats ที่ถูกต้อง</param>
+    private void SetPlayerStats(PlayerStats stats)
     {
-        // ตั้งค่าเริ่มต้นของ UI เมื่อเกมเริ่ม
-        if (playerStats != null && lifeText != null)
+        // ยกเลิกการสมัคร Event ตัวเก่าก่อน
+        if (playerStats != null)
         {
-            UpdateLifeDisplay(playerStats.CurrentLife);
+            playerStats.OnLifeUpdate -= UpdateLifeDisplay;
+            playerStats.OnGameOver -= HandleGameOverDisplay;
         }
-        else
-        {
-            Debug.LogError("LifeDisplayUI: ต้องกำหนดค่า PlayerStats และ UI TextMeshPro ใน Inspector!");
-        }
+
+        // กำหนดค่า PlayerStats ที่ถูกต้อง
+        playerStats = stats;
+        
+        // 2. สมัครรับ Event ของ PlayerStats ตัวใหม่
+        playerStats.OnLifeUpdate += UpdateLifeDisplay;
+        playerStats.OnGameOver += HandleGameOverDisplay;
+
+        // 3. ตั้งค่าและอัปเดตค่าเริ่มต้นทันที
+        UpdateLifeDisplay(playerStats.CurrentLife);
     }
+
 
     /// <summary>
     /// ถูกเรียกทุกครั้งที่จำนวนชีวิตมีการเปลี่ยนแปลง
@@ -52,7 +68,6 @@ public class LifeDisplayUI : MonoBehaviour
     {
         if (lifeText != null)
         {
-            // แสดงจำนวนชีวิตที่เหลือในรูปแบบข้อความ
             lifeText.text = $"{currentLives}";
         }
     }
@@ -65,7 +80,6 @@ public class LifeDisplayUI : MonoBehaviour
         if (lifeText != null)
         {
             lifeText.text = "GAME OVER";
-            // คุณอาจต้องการแสดง UI Game Over อื่นๆ ตรงนี้
         }
     }
 }
