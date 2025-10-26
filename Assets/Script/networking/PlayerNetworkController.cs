@@ -23,13 +23,37 @@ public override void Spawned()
 {
     if (HasStateAuthority)
     {
-        // This is our local player.
+        // This is OUR local player.
         _motor.IsLocalPlayer = true;
-        if (Camera.main != null) Camera.main.gameObject.SetActive(false);
         _motor.SetCursorVisibility(false);
 
-        // --- THIS IS THE CRITICAL LINE ---
-        // Find the GameUIManager instance that lives in this scene and tell it to show the UI.
+        // --- CAMERA LOGIC ---
+        Debug.Log("Local player has spawned. Attempting to switch cameras.");
+
+        // 1. Find the main camera that was in the scene when it loaded.
+        GameObject sceneCamera = GameObject.FindGameObjectWithTag("MainCamera");
+        if (sceneCamera != null)
+        {
+            sceneCamera.SetActive(false);
+            Debug.Log("Found and disabled the scene's Main Camera.");
+        }
+        else
+        {
+            Debug.LogWarning("Could not find a scene camera with the 'MainCamera' tag to disable.");
+        }
+
+        // 2. Enable our own player camera.
+        if (_motor.playerCamera != null)
+        {
+            _motor.playerCamera.gameObject.SetActive(true);
+            Debug.Log("Enabled the player's personal camera.");
+        }
+        else
+        {
+            Debug.LogError("Player Camera reference is not set on the FirstPersonController_Motor!");
+        }
+
+        // --- UI LOGIC ---
         if (GameUIManager.Instance != null)
         {
             GameUIManager.Instance.ShowInGameUI();
@@ -41,7 +65,7 @@ public override void Spawned()
     }
     else
     {
-        // This is a remote player.
+        // This is a remote player. We don't need their camera.
         _motor.playerCamera.gameObject.SetActive(false);
         _motor.IsLocalPlayer = false;
     }
