@@ -1,90 +1,92 @@
 using UnityEngine;
+using System.Collections;
 
+[RequireComponent(typeof(JumpscareTrigger))]
 public class StaticGhostAI : MonoBehaviour
 {
     [Header("Detection & Chase Settings")]
-    public float detectionRange = 25f;
-    public float stopDistance = 0.1f;
-    public float moveSpeed = 20f;
+    public float detectionRange = 10f;
+    public float stopDistance = 2f;
+    public float moveSpeed = 3.5f;
 
-    [Header("Target Settings")]
-    public string playerTag = "Player";
-    public LayerMask detectionMask;
+    private Transform player;
+    private JumpscareTrigger trigger;
+    private bool playerDetected = false;
+    private bool isDestroyed = false;
 
-    [Header("Destroy Settings")]
-    public float destroyDelay = 0.3f;
+    void Start()
+    {
+        trigger = GetComponent<JumpscareTrigger>();
+        player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
-    private Transform target;
-    private bool detected = false;
+        if (player == null)
+            Debug.LogWarning("StaticGhostAI: Player not found. Make sure the Player tag is assigned.");
+    }
 
     void Update()
     {
-        if (!detected)
-        {
-            DetectPlayer();
-        }
-        else
-        {
-            ChasePlayer();
-        }
-    }
+        if (isDestroyed || player == null) return;
 
-    void DetectPlayer()
-    {
-        Collider[] hits = Physics.OverlapSphere(transform.position, detectionRange, detectionMask);
-        foreach (Collider hit in hits)
+        float distance = Vector3.Distance(transform.position, player.position);
+
+        if (!playerDetected && distance <= detectionRange)
         {
-            if (hit.CompareTag(playerTag))
+            playerDetected = true;
+        }
+
+        if (playerDetected && !HasTriggered(trigger))
+        {
+            if (distance > stopDistance)
             {
-                target = hit.transform;
-                detected = true;
-                break;
+                Vector3 direction = (player.position - transform.position).normalized;
+                transform.position += direction * moveSpeed * Time.deltaTime;
+                transform.LookAt(player);
             }
         }
-    }
 
-    void ChasePlayer()
-    {
-        if (target == null)
+        if (HasTriggered(trigger) && !isDestroyed)
         {
-            detected = false;
-            return;
-        }
-
-        float distance = Vector3.Distance(transform.position, target.position);
-
-        if (distance > stopDistance)
-        {
-            Vector3 direction = (target.position - transform.position).normalized;
-            transform.position += direction * moveSpeed * Time.deltaTime;
-        }
-        else
-        {
-            Destroy(gameObject, destroyDelay);
+            isDestroyed = true;
+            StartCoroutine(DestroyAfterScare(trigger.scareDuration));
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    bool HasTriggered(JumpscareTrigger t)
     {
-        if (other.CompareTag(playerTag))
-        {
-            Destroy(gameObject, destroyDelay);
-        }
+        var field = typeof(JumpscareTrigger).GetField("hasTriggered", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        return (bool)field.GetValue(t);
     }
 
-    private void OnCollisionEnter(Collision collision)
+    IEnumerator DestroyAfterScare(float delay)
     {
-        if (collision.collider.CompareTag(playerTag))
+        // ✅ Find AudioSource and scareSound safely
+        AudioSource scareAudio = GetComponent<AudioSource>();
+        AudioClip scareClip = null;
+
+        if (trigger != null)
+            scareClip = trigger.scareSound;
+
+        // 🔊 Create independent sound source if valid clip exists
+        if (scareClip != null)
         {
-            Destroy(gameObject, destroyDelay);
+            GameObject tempAudio = new GameObject("TempScareAudio");
+            AudioSource newAudio = tempAudio.AddComponent<AudioSource>();
+            newAudio.clip = scareClip;
+            newAudio.volume = (scareAudio != null) ? scareAudio.volume : 1f;
+            newAudio.spatialBlend = (scareAudio != null) ? scareAudio.spatialBlend : 0f;
+            newAudio.Play();
+            Destroy(tempAudio, scareClip.length + 0.5f);
         }
+
+        yield return new WaitForSeconds(delay + 0.2f);
+        Destroy(gameObject);
     }
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
-        Gizmos.DrawSphere(transform.position, detectionRange);
-        Gizmos.color = Color.red;
+        Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, stopDistance);
     }
 }
