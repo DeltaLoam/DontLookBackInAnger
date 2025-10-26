@@ -187,6 +187,7 @@ GameObject:
   - component: {fileID: 3196894868011707532}
   - component: {fileID: 8305468308151817556}
   - component: {fileID: -237686543533050328}
+  - component: {fileID: 6192113391393140862}
   m_Layer: 2
   m_Name: FirstPersonController
   m_TagString: Player
@@ -423,6 +424,18 @@ MonoBehaviour:
   SyncParent: 0
   _autoAOIOverride: 1
   DisableSharedModeInterpolation: 0
+--- !u!114 &6192113391393140862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6943547334135871989}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8edbe7108d8a43ab838cf8b8d9453df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7212523725398614684
 GameObject:
   m_ObjectHideFlags: 0
@@ -574,11 +587,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c794fad6d8bb6f943a5fbd83076285a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sanityVignetteImage: {fileID: 0}
-  vignetteTexture: {fileID: 2800000, guid: 21bdda70524b39f488323408e18b9314, type: 3}
-  effectStartSanity: 100
-  vignetteFadeSpeed: 15
-  fadeCurvePower: 5
+  maxAlpha: 0.8
+  fadeSpeed: 5
 --- !u!1 &8068751560660907139
 GameObject:
   m_ObjectHideFlags: 0
